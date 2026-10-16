@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Debug Dojo</title>
+  <link rel="stylesheet" href="/frontend/styles.css">
+</head>
+<body>
+  <header class="topbar"><div><p class="eyebrow">PYTHON PRACTICE LAB</p><h1>Debug Dojo</h1></div><label class="learner">Learner <input id="learner-id" value="dojo_learner" maxlength="64" autocomplete="off"></label></header>
+  <main class="shell">
+    <aside class="panel navigator"><div class="panel-heading"><h2>Challenges</h2><span id="challenge-count" class="muted"></span></div><div id="challenge-list" class="challenge-list" aria-live="polite"><p class="muted">Loading challenges…</p></div></aside>
+    <section class="workspace">
+      <div id="global-status" class="status" role="status"></div>
+      <article id="challenge-panel" class="panel challenge-panel" hidden>
+        <div class="challenge-head"><div><p id="difficulty" class="badge"></p><h2 id="title"></h2></div><button id="profile-button" class="secondary">Refresh profile</button></div>
+        <p id="description" class="description"></p><div id="concepts" class="chips"></div>
+        <details open><summary>Examples & constraints</summary><div id="examples" class="examples"></div></details>
+        <div class="editor-head"><h3>Solution</h3><span>Python · editable</span></div><textarea id="code" spellcheck="false" aria-label="Python solution"></textarea>
+        <div class="actions"><button id="submit-button" class="primary">Run submission</button><span id="submit-status" class="muted"></span></div>
+      </article>
+      <section id="results-panel" class="panel results" hidden><div class="panel-heading"><h2>Submission feedback</h2><span id="submission-id" class="muted"></span></div><div id="outcome-summary"></div><div id="visible-results" class="test-results"></div><div id="mistakes"></div><div class="feedback-grid"><div><h3>Explanation</h3><p id="explanation" class="callout"></p><button id="hint-button" class="secondary" hidden>Reveal next hint</button><div id="hints" class="hints"></div></div><div><h3>Learner profile</h3><div id="profile" class="profile"><p class="muted">Submit code to see mastery and recommendations.</p></div></div></div></section>
+    </section>
+  </main>
+  <script src="/frontend/app.js" defer></script>
+</body>
+</html>

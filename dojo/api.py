@@ -7,9 +7,11 @@ import concurrent.futures
 import json
 import re
 import threading
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from .detectors import detect_mistakes
@@ -26,6 +28,8 @@ POOL = concurrent.futures.ThreadPoolExecutor(max_workers=4)
 SUBMISSION_LIMIT = threading.Semaphore(3)
 LEARNER_RE = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 app = FastAPI(title="Debug Dojo")
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+FRONTEND_ROOT = PROJECT_ROOT / "frontend"
 
 
 class SubmitRequest(BaseModel):
@@ -91,9 +95,37 @@ def _submit(request: SubmitRequest, challenge: dict[str, Any]) -> dict[str, Any]
     }
 
 
+_PUBLIC_FIELDS = ("id", "title", "description", "difficulty", "concepts", "function_name", "starter_code", "visible_tests")
+
+
+def _public_challenge(challenge: dict[str, Any]) -> dict[str, Any]:
+    """Project challenge data without hidden tests or private expected outputs."""
+    public = {key: challenge[key] for key in _PUBLIC_FIELDS}
+    public["examples"] = [{"call": _call_text(challenge["function_name"], test["args"]), "expected": repr(test["expected"])} for test in challenge["visible_tests"]]
+    public.pop("visible_tests")
+    return public
+
+
 @app.on_event("startup")
 def startup() -> None:
     require_resource_limits()
+
+
+@app.get("/")
+async def frontend() -> FileResponse:
+    return FileResponse(FRONTEND_ROOT / "index.html")
+
+
+@app.get("/frontend/{filename}")
+async def frontend_asset(filename: str) -> FileResponse:
+    if filename not in {"app.js", "styles.css"}:
+        raise HTTPException(status_code=404, detail="asset not found")
+    return FileResponse(FRONTEND_ROOT / filename)
+
+
+@app.get("/api/challenges")
+async def challenges() -> list[dict[str, Any]]:
+    return [_public_challenge(challenge) for challenge in CHALLENGES.values()]
 
 
 @app.post("/api/submit")
