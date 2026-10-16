@@ -1,3 +1,4 @@
 debug-dojo-*/
 .pytest_cache/
 __pycache__/
+data/

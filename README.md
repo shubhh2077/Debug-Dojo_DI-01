@@ -1,32 +1,21 @@
 # Debug Dojo
 
-Phase 1 provides the challenge loader and a per-test child-process sandbox.
+Phase 2 provides the API, SQLite submissions, explanations, and rule-based detectors.
 
 ## Start
 
-```powershell
+```bash
+source .venv/bin/activate
 python run.py
 ```
 
-The Phase 1 server is a placeholder process; the HTTP API is added in Phase 2.
-
-## Phase 1.5 runner modes
-
-The default `local` mode is fail-closed on Windows because Python cannot
-enforce all required process limits there. `local-dev` is used only by tests
-and is not a security boundary. Supported execution is Docker:
-
-```powershell
-docker build -t debug-dojo:latest .
-```
-
-Docker applies `--network none`, `--read-only`, a writable tmpfs, 128 MB
-memory, 64 PIDs, 0.5 CPU, and drops all capabilities. The platform audit is
-available through `dojo.runner.format_platform_audit()`.
+The server refuses to start outside Linux/WSL2 where the required `resource`
+limits cannot be applied. It listens on `0.0.0.0:8000`.
 
 ## Test
 
-```powershell
+```bash
+source .venv/bin/activate
 python -m pytest -q
 ```
 

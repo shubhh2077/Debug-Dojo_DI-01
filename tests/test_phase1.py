@@ -34,7 +34,7 @@ def test_required_challenge_has_valid_shape(challenges, challenge_id):
 def test_passing_program(challenges, challenge_id, code):
     challenge = challenges[challenge_id]
     for test in challenge["visible_tests"]:
-        result = run_test(code, challenge["function_name"], test["args"], test["expected"], mode="local-dev")
+        result = run_test(code, challenge["function_name"], test["args"], test["expected"])
         assert result.outcome == "passed"
 
 
@@ -48,7 +48,7 @@ def test_wrong_output_program(challenges, challenge_id, code, test_index):
     challenge = challenges[challenge_id]
     result = run_test(code, challenge["function_name"],
                       challenge["visible_tests"][test_index]["args"],
-                      challenge["visible_tests"][test_index]["expected"], mode="local-dev")
+                      challenge["visible_tests"][test_index]["expected"])
     assert result.outcome == "wrong_output"
 
 
@@ -59,7 +59,7 @@ def test_error_program(challenges, challenge_id):
     challenge = challenges[challenge_id]
     result = run_test("def wrong_name(): pass", challenge["function_name"],
                       challenge["visible_tests"][0]["args"],
-                      challenge["visible_tests"][0]["expected"], mode="local-dev")
+                      challenge["visible_tests"][0]["expected"])
     assert result.outcome == "runtime_error"
 
 
@@ -71,7 +71,7 @@ def test_infinite_loop_is_timeout(challenges, challenge_id):
     code = f"def {challenge['function_name']}(*args):\n    while True: pass"
     result = run_test(code, challenge["function_name"],
                       challenge["visible_tests"][0]["args"],
-                      challenge["visible_tests"][0]["expected"], timeout=0.4, mode="local-dev")
+                      challenge["visible_tests"][0]["expected"], timeout=0.4)
     assert result.outcome == "timeout"
 
 
@@ -98,6 +98,6 @@ HOSTILE_PROGRAMS = [
 def test_hostile_programs_are_contained_and_never_pass(code, challenges):
     challenge = challenges["last-k-total"]
     test = challenge["visible_tests"][0]
-    result = run_test(code, challenge["function_name"], test["args"], test["expected"], timeout=0.5, mode="local-dev")
+    result = run_test(code, challenge["function_name"], test["args"], test["expected"], timeout=0.5)
     assert result.outcome != "passed"
     assert load_challenges(ROOT / "challenges")["last-k-total"]["id"] == "last-k-total"

@@ -1,7 +1,6 @@
-"""One-command entry point reserved for the API phase."""
+"""Start the Debug Dojo API."""
 
-from dojo.runner import sweep_stale_sandboxes
+import uvicorn
 
 if __name__ == "__main__":
-    sweep_stale_sandboxes()
-    print("Debug Dojo Phase 1 is ready. Run: python -m pytest -q")
+    uvicorn.run("dojo.api:app", host="0.0.0.0", port=8000)

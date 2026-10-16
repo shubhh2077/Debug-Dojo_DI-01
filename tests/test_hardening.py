@@ -35,7 +35,7 @@ def test_pipe_is_bounded_json_and_never_executes_parent_payload():
         "    def __reduce__(self):\n"
         "        return (print, ('PARENT_EXECUTED',))\n"
         "def f(): return Payload()",
-        "f", [], None, mode="local-dev",
+        "f", [], None,
     )
     assert result.outcome == "runtime_error"
     assert "PARENT_EXECUTED" not in result.stdout
@@ -48,7 +48,7 @@ def test_pipe_is_bounded_json_and_never_executes_parent_payload():
     f"def f(): return open({str(ROOT / 'dojo' / 'runner.py')!r}).read()",
 ])
 def test_child_cannot_read_repo_or_challenges(code):
-    result = run_test(code, "f", [], None, mode="local-dev")
+    result = run_test(code, "f", [], None)
     assert result.outcome == "runtime_error"
     assert "id\": \"last-k-total\"" not in result.error
     assert "def run_test" not in result.error
@@ -61,7 +61,7 @@ def test_sandbox_cleanup_after_timeout_and_file_attempt():
         "def f():\n    open('x', 'w').write('x')",
         "def f(): return 1",
     ]:
-        run_test(code, "f", [], 1, timeout=0.2, mode="local-dev")
+        run_test(code, "f", [], 1, timeout=0.2)
     assert not list(Path(os.environ.get("TEMP", "/tmp")).glob("debug-dojo-*"))
     assert not list(ROOT.glob("debug-dojo-*"))
 
@@ -72,7 +72,7 @@ def test_sandbox_cleanup_after_timeout_and_file_attempt():
     "def f():\n    def recurse(): recurse()\n    recurse()",
 ])
 def test_visible_limit_failures_name_limit(code):
-    result = run_test(code, "f", [], None, timeout=0.5, mode="local-dev")
+    result = run_test(code, "f", [], None, timeout=0.5)
     assert result.outcome in {"runtime_error", "timeout"}
     if result.outcome == "runtime_error":
         assert any(word in result.error.lower() for word in ("output", "memory", "recursion", "limit"))
@@ -87,7 +87,7 @@ def test_visible_limit_failures_name_limit(code):
     "def f():\n    globals()['f'] = lambda: 999\n    return 999",
 ])
 def test_extra_hostile_programs_are_not_passed_and_recovery_works(code):
-    result = run_test(code, "f", [], 0, timeout=0.5, mode="local-dev")
+    result = run_test(code, "f", [], 0, timeout=0.5)
     assert result.outcome != "passed"
-    normal = run_test("def f(): return 1", "f", [], 1, mode="local-dev")
+    normal = run_test("def f(): return 1", "f", [], 1)
     assert normal.outcome == "passed"
