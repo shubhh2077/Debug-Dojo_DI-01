@@ -1,0 +1,28 @@
+{
+  "id": "sorted-copy",
+  "title": "Make a Sorted Copy",
+  "description": "Return a sorted copy of the values without changing the original list.",
+  "difficulty": "medium",
+  "concepts": ["lists", "copying", "sorting"],
+  "traps": ["mutates_input", "off_by_one", "unhandled_short_input"],
+  "function_name": "sorted_copy",
+  "starter_code": "def sorted_copy(values):\n    pass\n",
+  "visible_tests": [
+    {"args": [[3, 1, 2]], "expected": [1, 2, 3]},
+    {"args": [[4]], "expected": [4]},
+    {"args": [[]], "expected": []}
+  ],
+  "hidden_tests": [
+    {"args": [[]], "expected": [], "kind": "empty_list"},
+    {"args": [[2, 1]], "expected": [1, 2], "kind": "short_input"},
+    {"args": [[1, 2, 3]], "expected": [1, 2, 3], "kind": "exact_boundary"},
+    {"args": [[-1, 3, 0, -2]], "expected": [-2, -1, 0, 3], "kind": "normal"},
+    {"args": [[2, 2, 1]], "expected": [1, 2, 2], "kind": "normal"}
+  ],
+  "hints": {
+    "mutates_input": ["The caller may need the original ordering after this function.", "Compare the list before and after the operation.", "Sorting in place and producing a sorted result are different behaviors.", "Check both the returned order and the original list."],
+    "off_by_one": ["A sorted result should contain every original item.", "Compare the lengths before comparing the order.", "Duplicates still occupy separate positions.", "Trace a two-item list and a list with repeated values."],
+    "unhandled_short_input": ["An empty list already has a sorted order.", "A one-item list needs no special missing position.", "Avoid assuming there are two values to compare.", "Trace empty, one-item, and two-item inputs."]
+  },
+  "explanations": {"empty_list": "An empty list has an empty sorted copy.", "short_input": "Short lists can be sorted without indexing beyond their contents.", "exact_boundary": "The result must preserve every item at the boundary case.", "normal": "Return ascending values while leaving the input unchanged."}
+}

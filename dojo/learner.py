@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import defaultdict
 from typing import Any
 
+from .recommendation_policy import prefer_legacy_challenge
+
 
 MASTERY_THRESHOLD = 0.8
 
@@ -90,12 +92,12 @@ def _next_challenge(
     for mistake in recurring:
         category = mistake["category"]
         matching = [
-            challenge for challenge in preferred
+            challenge for challenge in candidates
             if category in challenge.get("traps", [])
             and sources[category].intersection(challenge.get("concepts", []))
         ]
         if matching:
-            challenge = sorted(matching, key=lambda item: item["id"])[0]
+            challenge = prefer_legacy_challenge(matching, attempted)
             return {
                 "id": challenge["id"],
                 "reason": (
@@ -105,9 +107,9 @@ def _next_challenge(
             }
 
     pool = preferred
-    challenge = sorted(
-        pool, key=lambda item: (max(mastery.get(c, 0.0) for c in item["concepts"]), item["id"])
-    )[0]
+    challenge = prefer_legacy_challenge(pool, attempted)
+    if challenge is None:
+        return None
     return {
         "id": challenge["id"],
         "reason": "This challenge gives you practice with a concept that is not mastered yet.",

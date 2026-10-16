@@ -1,0 +1,28 @@
+{
+  "id": "count-vowels",
+  "title": "Count the Vowels",
+  "description": "Count the vowels a, e, i, o, and u in a string, regardless of letter case.",
+  "difficulty": "medium",
+  "concepts": ["strings", "loops", "normalization"],
+  "traps": ["boundary_comparison", "off_by_one", "unhandled_short_input"],
+  "function_name": "count_vowels",
+  "starter_code": "def count_vowels(text):\n    pass\n",
+  "visible_tests": [
+    {"args": ["Debug Dojo"], "expected": 4},
+    {"args": ["AEIOU"], "expected": 5},
+    {"args": ["rhythm"], "expected": 0}
+  ],
+  "hidden_tests": [
+    {"args": [""], "expected": 0, "kind": "empty_list"},
+    {"args": ["a"], "expected": 1, "kind": "short_input"},
+    {"args": ["xyz!"], "expected": 0, "kind": "exact_boundary"},
+    {"args": ["Beautiful"], "expected": 5, "kind": "normal"},
+    {"args": ["a e i o u A E I O U"], "expected": 10, "kind": "normal"}
+  ],
+  "hints": {
+    "boundary_comparison": ["The vowel set has five members, and case should not exclude them.", "Check how uppercase letters are classified.", "Letters that are not vowels should contribute nothing.", "Trace one lowercase vowel, one uppercase vowel, and a consonant."],
+    "off_by_one": ["Every character should be inspected exactly once.", "Check the first and final characters of the text.", "Punctuation still occupies a character position but is not a vowel.", "Put a vowel at each end and count the result."],
+    "unhandled_short_input": ["An empty string is a valid piece of text.", "The count starts at the neutral value when there are no characters.", "A one-character string still needs classification.", "Trace empty, one-character, and punctuation-only strings."]
+  },
+  "explanations": {"empty_list": "An empty string contains no vowels.", "short_input": "Short strings still need their characters classified.", "exact_boundary": "Non-vowels, including punctuation, should not increase the count.", "normal": "Count each character that belongs to the five vowels, ignoring case."}
+}

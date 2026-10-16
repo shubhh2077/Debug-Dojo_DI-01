@@ -1,0 +1,28 @@
+{
+  "id": "find-max",
+  "title": "Find the Largest Value",
+  "description": "Return the largest number in the list, or None when the list is empty.",
+  "difficulty": "easy",
+  "concepts": ["lists", "comparisons", "edge_cases"],
+  "traps": ["unhandled_short_input", "off_by_one", "print_not_return"],
+  "function_name": "find_max",
+  "starter_code": "def find_max(numbers):\n    pass\n",
+  "visible_tests": [
+    {"args": [[3, 1, 4, 2]], "expected": 4},
+    {"args": [[-2]], "expected": -2},
+    {"args": [[]], "expected": null}
+  ],
+  "hidden_tests": [
+    {"args": [[]], "expected": null, "kind": "empty_list"},
+    {"args": [[7]], "expected": 7, "kind": "short_input"},
+    {"args": [[1, 2, 3, 4]], "expected": 4, "kind": "exact_boundary"},
+    {"args": [[-8, -3, -10]], "expected": -3, "kind": "normal"},
+    {"args": [[5, 5, 2]], "expected": 5, "kind": "normal"}
+  ],
+  "hints": {
+    "unhandled_short_input": ["There may be no candidate at the start.", "Decide what an empty list should provide before comparing values.", "A single value is already a complete search.", "Trace empty, one-item, and two-item lists separately."],
+    "off_by_one": ["Every item needs a chance to be compared.", "Trace which positions your search visits.", "Check whether the final position is included.", "Try the largest value at the beginning, middle, and end."],
+    "print_not_return": ["A displayed maximum is not the value the caller receives.", "Check the function result after the search finishes.", "The best candidate must leave the function as its result.", "Test a one-item list and inspect the returned value."]
+  },
+  "explanations": {"empty_list": "An empty list has no candidate maximum and should use the documented empty result.", "short_input": "A one-item list still has a well-defined largest value.", "exact_boundary": "Make sure the search includes the final candidate.", "normal": "Compare every candidate while keeping the largest seen so far."}
+}

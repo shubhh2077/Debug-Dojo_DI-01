@@ -1,0 +1,28 @@
+{
+  "id": "sum-of-evens",
+  "title": "Sum the Even Numbers",
+  "description": "Return the sum of all even numbers in the list. Return 0 when there are no even numbers.",
+  "difficulty": "easy",
+  "concepts": ["lists", "loops", "conditions"],
+  "traps": ["boundary_comparison", "off_by_one", "unhandled_short_input"],
+  "function_name": "sum_of_evens",
+  "starter_code": "def sum_of_evens(numbers):\n    pass\n",
+  "visible_tests": [
+    {"args": [[1, 2, 3, 4]], "expected": 6},
+    {"args": [[5, 7]], "expected": 0},
+    {"args": [[]], "expected": 0}
+  ],
+  "hidden_tests": [
+    {"args": [[0]], "expected": 0, "kind": "exact_boundary"},
+    {"args": [[-4, -3, 2]], "expected": -2, "kind": "normal"},
+    {"args": [[2]], "expected": 2, "kind": "short_input"},
+    {"args": [[1, 3, 5, 8]], "expected": 8, "kind": "normal"},
+    {"args": [[]], "expected": 0, "kind": "empty_list"}
+  ],
+  "hints": {
+    "boundary_comparison": ["Parity is about divisibility by two, including zero.", "Check the condition used to classify a number.", "An even number leaves no remainder after pairing.", "Trace zero, one, and two before a mixed list."],
+    "off_by_one": ["Each input number should be considered once.", "Trace the first and last positions in a mixed list.", "Check whether the loop visits every element.", "Put the only even number at each end and in the middle."],
+    "unhandled_short_input": ["No numbers is a valid input.", "Start with the sum contributed by no even numbers.", "An empty list should not need a first element.", "Compare empty, one-number, and mixed inputs."]
+  },
+  "explanations": {"exact_boundary": "Zero is even, although adding it does not change the total.", "normal": "Only values divisible by two should contribute to the total.", "short_input": "A one-item list still needs the parity rule applied.", "empty_list": "With no numbers, the even-number sum is zero."}
+}

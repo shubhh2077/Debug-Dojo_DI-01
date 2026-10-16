@@ -1,0 +1,28 @@
+{
+  "id": "average-marks",
+  "title": "Average the Marks",
+  "description": "Return the arithmetic mean of the marks. Return 0 for an empty list.",
+  "difficulty": "easy",
+  "concepts": ["lists", "aggregation", "edge_cases"],
+  "traps": ["unhandled_short_input", "boundary_comparison", "print_not_return"],
+  "function_name": "average_marks",
+  "starter_code": "def average_marks(marks):\n    pass\n",
+  "visible_tests": [
+    {"args": [[10, 20, 30]], "expected": 20.0},
+    {"args": [[5]], "expected": 5.0},
+    {"args": [[]], "expected": 0}
+  ],
+  "hidden_tests": [
+    {"args": [[]], "expected": 0, "kind": "empty_list"},
+    {"args": [[0, 0, 0]], "expected": 0.0, "kind": "exact_boundary"},
+    {"args": [[1, 2]], "expected": 1.5, "kind": "short_input"},
+    {"args": [[-5, 5]], "expected": 0.0, "kind": "normal"},
+    {"args": [[2, 3, 4, 5]], "expected": 3.5, "kind": "normal"}
+  ],
+  "hints": {
+    "unhandled_short_input": ["An empty collection has a useful numeric result here.", "Check the number of items before dividing.", "The empty case should not attempt a division.", "Trace the function with no marks and with one mark."],
+    "boundary_comparison": ["Zero marks and zero as a result are different ideas.", "Separate the empty-input check from the arithmetic.", "Check what the denominator means for an empty list.", "Compare an empty list with a list containing zeroes."],
+    "print_not_return": ["Displaying a number does not give it back to the caller.", "Follow the value received by the test harness.", "The calculated average must be the function result.", "Check the returned value on a one-item list."]
+  },
+  "explanations": {"empty_list": "An empty list should return the defined neutral result without division.", "exact_boundary": "Check the distinction between an empty input and marks whose average is zero.", "short_input": "A small list still needs a valid average.", "normal": "Add all marks and divide by the number of marks."}
+}

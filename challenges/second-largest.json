@@ -1,0 +1,29 @@
+{
+  "id": "second-largest",
+  "title": "Find the Second Largest",
+  "description": "Return the second-largest distinct number, or None when fewer than two distinct values exist.",
+  "difficulty": "hard",
+  "concepts": ["lists", "sorting", "edge_cases", "comparisons"],
+  "traps": ["off_by_one", "unhandled_short_input", "boundary_comparison"],
+  "function_name": "second_largest",
+  "starter_code": "def second_largest(numbers):\n    pass\n",
+  "visible_tests": [
+    {"args": [[10, 4, 7, 2]], "expected": 7},
+    {"args": [[5, 5, 3]], "expected": 3},
+    {"args": [[9]], "expected": null}
+  ],
+  "hidden_tests": [
+    {"args": [[]], "expected": null, "kind": "empty_list"},
+    {"args": [[4]], "expected": null, "kind": "short_input"},
+    {"args": [[4, 4]], "expected": null, "kind": "exact_boundary"},
+    {"args": [[1, 2]], "expected": 1, "kind": "short_input"},
+    {"args": [[-5, -1, -3]], "expected": -3, "kind": "normal"},
+    {"args": [[8, 2, 8, 5]], "expected": 5, "kind": "normal"}
+  ],
+  "hints": {
+    "off_by_one": ["The largest value is not the requested result.", "Keep track of distinct positions in the descending order.", "Duplicates should not create a new rank.", "Trace two distinct values, then repeat the largest value."],
+    "unhandled_short_input": ["There may be fewer than two distinct choices.", "Check how many distinct values are available before selecting a rank.", "An empty list and a list with one value need the documented empty result.", "Trace empty, one-value, equal-value, and two-value inputs."],
+    "boundary_comparison": ["Equality matters when deciding whether a value creates a new rank.", "Compare repeated values with genuinely smaller values.", "The second rank must be distinct from the first.", "Try two equal values and then two different values." ]
+  },
+  "explanations": {"empty_list": "There is no second distinct value in an empty input.", "short_input": "Fewer than two distinct values cannot produce a second-largest result.", "exact_boundary": "Equal values share one rank and should not count twice.", "normal": "Choose the largest value after excluding the largest distinct value."}
+}
