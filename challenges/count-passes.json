@@ -1,0 +1,27 @@
+{
+  "id": "count-passes",
+  "title": "Count Passing Marks",
+  "description": "Count marks that meet or exceed the passing threshold of 40.",
+  "difficulty": "easy",
+  "concepts": ["lists", "counting", "comparisons"],
+  "traps": ["boundary_comparison", "unhandled_short_input"],
+  "function_name": "count_passes",
+  "starter_code": "def count_passes(marks):\n    pass\n",
+  "visible_tests": [
+    {"args": [[39, 40, 41]], "expected": 2},
+    {"args": [[]], "expected": 0},
+    {"args": [[10, 20, 80]], "expected": 1}
+  ],
+  "hidden_tests": [
+    {"args": [[40]], "expected": 1, "kind": "exact_boundary"},
+    {"args": [[39]], "expected": 0, "kind": "normal"},
+    {"args": [[]], "expected": 0, "kind": "empty_list"},
+    {"args": [[0, 40, 100]], "expected": 2, "kind": "normal"},
+    {"args": [[39, 39, 41]], "expected": 1, "kind": "short_input"}
+  ],
+  "hints": {
+    "boundary_comparison": ["There is a difference between greater than and meeting a threshold.", "Read the phrase '40 or more' literally.", "The threshold value itself belongs in the passing group.", "Try a list containing only the exact threshold."],
+    "unhandled_short_input": ["A collection can contain no marks.", "Counting zero items should produce a valid count.", "Start with an empty count before iterating.", "Check empty and one-item inputs separately."]
+  },
+  "explanations": {"exact_boundary": "A mark exactly at 40 is passing.", "normal": "Only marks at or above 40 should be counted.", "empty_list": "There are no passing marks in an empty list.", "short_input": "Short inputs still need a complete count."}
+}

@@ -1,0 +1,27 @@
+{
+  "id": "middle-three",
+  "title": "Pick the Middle Three",
+  "description": "Return the middle three items, or the whole list when fewer than three exist.",
+  "difficulty": "medium",
+  "concepts": ["lists", "slicing", "indexing", "edge_cases"],
+  "traps": ["off_by_one", "unhandled_short_input"],
+  "function_name": "middle_three",
+  "starter_code": "def middle_three(items):\n    pass\n",
+  "visible_tests": [
+    {"args": [[1, 2, 3, 4, 5]], "expected": [2, 3, 4]},
+    {"args": [[9, 8]], "expected": [9, 8]},
+    {"args": [[]], "expected": []}
+  ],
+  "hidden_tests": [
+    {"args": [[1, 2, 3]], "expected": [1, 2, 3], "kind": "exact_boundary"},
+    {"args": [[1]], "expected": [1], "kind": "short_input"},
+    {"args": [[]], "expected": [], "kind": "empty_list"},
+    {"args": [[1, 2, 3, 4, 5, 6, 7]], "expected": [3, 4, 5], "kind": "normal"},
+    {"args": [[1, 2]], "expected": [1, 2], "kind": "short_input"}
+  ],
+  "hints": {
+    "off_by_one": ["The center has one position on either side.", "Use the list length to locate the center.", "A three-item result spans three consecutive positions.", "Check lengths three, five, and seven."],
+    "unhandled_short_input": ["The requirement changes when fewer than three items exist.", "Short lists should be returned unchanged.", "Check the length before choosing a center.", "Try zero, one, and two items."]
+  },
+  "explanations": {"exact_boundary": "A list of exactly three items is already its middle three.", "short_input": "Lists shorter than three should be returned whole.", "empty_list": "The empty list has no middle items.", "normal": "The selected slice must be centered."}
+}

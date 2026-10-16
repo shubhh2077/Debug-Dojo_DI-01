@@ -1,0 +1,27 @@
+{
+  "id": "first-n-squares",
+  "title": "First N Squares",
+  "description": "Return the square numbers from 1 squared through n squared.",
+  "difficulty": "easy",
+  "concepts": ["lists", "loops", "ranges"],
+  "traps": ["off_by_one", "unhandled_short_input"],
+  "function_name": "first_n_squares",
+  "starter_code": "def first_n_squares(n):\n    pass\n",
+  "visible_tests": [
+    {"args": [0], "expected": []},
+    {"args": [3], "expected": [1, 4, 9]},
+    {"args": [1], "expected": [1]}
+  ],
+  "hidden_tests": [
+    {"args": [2], "expected": [1, 4], "kind": "normal"},
+    {"args": [4], "expected": [1, 4, 9, 16], "kind": "exact_boundary"},
+    {"args": [0], "expected": [], "kind": "empty_list"},
+    {"args": [5], "expected": [1, 4, 9, 16, 25], "kind": "normal"},
+    {"args": [1], "expected": [1], "kind": "short_input"}
+  ],
+  "hints": {
+    "off_by_one": ["The first square starts at one.", "The count describes how many results are needed.", "Check the endpoint of your iteration.", "Compare n equal to zero, one, and three."],
+    "unhandled_short_input": ["Zero is a valid request here.", "An empty result is different from an error.", "Handle the no-iteration case naturally.", "Test zero before larger values."]
+  },
+  "explanations": {"normal": "The sequence must contain exactly n squares starting at 1.", "exact_boundary": "The final requested square must be included.", "empty_list": "Requesting zero squares returns an empty list.", "short_input": "Small n values still define a complete sequence."}
+}
