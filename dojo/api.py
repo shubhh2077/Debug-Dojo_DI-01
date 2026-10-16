@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from .detectors import detect_mistakes
 from .explanations import explain
 from .hints import get_ladder
+from .learner import build_profile
 from .runner import Execution, require_resource_limits, run_challenge
 from .storage import SubmissionStore
 from .tests_loader import load_challenges
@@ -141,3 +142,10 @@ async def hint(request: HintRequest) -> dict[str, Any]:
     elif level == len(ladder) and int(submission["hint_level"]) >= len(ladder):
         note = "Trace your code by hand on a small example before changing it."
     return {"hint": ladder[level - 1], "level": level, "remaining": remaining, "note": note}
+
+
+@app.get("/api/learner/{learner_id}")
+async def learner(learner_id: str) -> dict[str, Any]:
+    if not LEARNER_RE.fullmatch(learner_id):
+        raise HTTPException(status_code=400, detail="invalid learner_id")
+    return build_profile(STORE.for_learner(learner_id), CHALLENGES)

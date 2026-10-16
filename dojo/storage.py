@@ -55,6 +55,22 @@ class SubmissionStore:
             result["mistake_tags"] = json.loads(result["mistake_tags"])
             return result
 
+    def for_learner(self, learner_id: str) -> list[dict[str, Any]]:
+        """Return a learner's submissions in the order they were recorded."""
+        with self._connect() as db:
+            db.row_factory = sqlite3.Row
+            rows = db.execute(
+                "SELECT * FROM submissions WHERE learner_id = ? ORDER BY rowid",
+                (learner_id,),
+            ).fetchall()
+            results = []
+            for row in rows:
+                result = dict(row)
+                result["outcomes"] = json.loads(result["outcomes"])
+                result["mistake_tags"] = json.loads(result["mistake_tags"])
+                results.append(result)
+            return results
+
     def advance_hint(self, submission_id: str) -> dict[str, Any] | None:
         with self._lock, self._connect() as db:
             db.row_factory = sqlite3.Row
