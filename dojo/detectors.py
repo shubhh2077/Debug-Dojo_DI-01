@@ -37,7 +37,7 @@ def detect_mistakes(visible: list[dict[str, Any]], hidden: list[dict[str, Any]])
         elif isinstance(expected, list) and isinstance(got, list) and abs(len(expected) - len(got)) == 1:
             tags.append("off_by_one")
     if not any(tag == "off_by_one" for tag in tags):
-        boundary_failures = [r for r in failing if r.get("kind") in {"exact_boundary", "k_zero"}]
+        boundary_failures = [r for r in failing if r.get("kind") == "exact_boundary"]
         if len(boundary_failures) >= 2:
             tags.append("off_by_one")
     return list(dict.fromkeys(tags))

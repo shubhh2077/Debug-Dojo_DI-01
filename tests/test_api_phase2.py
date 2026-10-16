@@ -69,6 +69,35 @@ def test_hidden_secrecy_and_no_traceback():
         assert set(item) == {"test", "outcome"}
 
 
+def test_k_zero_is_not_mislabeled_as_off_by_one():
+    response = submit(
+        "last-k-total",
+        "def last_k_total(marks, k): return sum(marks[-k:])",
+        "k_zero_user",
+    )
+    assert response.status_code == 200
+    assert response.json()["mistake_tags"] == []
+    explanation = response.json()["explanation"]
+    assert "zero case" in explanation
+    assert "no items should be selected" in explanation
+    assert "off by one" not in explanation
+
+
+def test_rohan_acceptance_has_three_of_six_hidden_failures():
+    response = submit(
+        "last-k-total",
+        "def last_k_total(marks, k):\n"
+        "    return sum(marks[-k:]) if len(marks) >= k else 0",
+        "rohan",
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert sum(item["outcome"] != "passed" for item in body["hidden"]) == 3
+    assert "unhandled_short_input" in body["mistake_tags"]
+    assert body["explanation"].count("hidden tests fail") == 1
+    assert "k_larger_than_list" in body["explanation"]
+
+
 @pytest.mark.parametrize(("code", "tag"), [
     ("def count_passes(m):\n    print('x')", "print_not_return"),
     ("def middle_three(items):\n    items.clear()\n    return items", "mutates_input"),
