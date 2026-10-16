@@ -54,3 +54,23 @@ class SubmissionStore:
             result["outcomes"] = json.loads(result["outcomes"])
             result["mistake_tags"] = json.loads(result["mistake_tags"])
             return result
+
+    def advance_hint(self, submission_id: str) -> dict[str, Any] | None:
+        with self._lock, self._connect() as db:
+            db.row_factory = sqlite3.Row
+            row = db.execute(
+                "SELECT * FROM submissions WHERE id = ?", (submission_id,)
+            ).fetchone()
+            if row is None:
+                return None
+            current = int(row["hint_level"])
+            db.execute(
+                "UPDATE submissions SET hint_level = ?, hints_used = hints_used + 1 WHERE id = ?",
+                (current + 1, submission_id),
+            )
+            result = dict(row)
+            result["hint_level"] = current + 1
+            result["hints_used"] = int(row["hints_used"]) + 1
+            result["mistake_tags"] = json.loads(result["mistake_tags"])
+            result["outcomes"] = json.loads(result["outcomes"])
+            return result

@@ -14,6 +14,7 @@ from pydantic import BaseModel
 
 from .detectors import detect_mistakes
 from .explanations import explain
+from .hints import get_ladder
 from .runner import Execution, require_resource_limits, run_challenge
 from .storage import SubmissionStore
 from .tests_loader import load_challenges
@@ -30,6 +31,12 @@ class SubmitRequest(BaseModel):
     learner_id: str
     challenge_id: str
     code: str
+
+
+class HintRequest(BaseModel):
+    submission_id: str
+    answer_requested: bool = False
+    question: str | None = None
 
 
 def _call_text(function_name: str, args: list[Any]) -> str:
@@ -107,3 +114,30 @@ async def submit(request: SubmitRequest) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail="submission failed")
     finally:
         SUBMISSION_LIMIT.release()
+
+
+@app.post("/api/hint")
+async def hint(request: HintRequest) -> dict[str, Any]:
+    submission = STORE.get(request.submission_id)
+    if submission is None:
+        raise HTTPException(status_code=404, detail="unknown submission")
+    tags = submission["mistake_tags"]
+    if not tags:
+        raise HTTPException(status_code=400, detail="submission has no detected mistake")
+    category = tags[0]
+    ladder = get_ladder(submission["challenge_id"], category)
+    if not ladder:
+        raise HTTPException(status_code=400, detail="no hint ladder for detected mistake")
+    level = min(int(submission["hint_level"]) + 1, len(ladder))
+    updated = STORE.advance_hint(request.submission_id)
+    if updated is None:
+        raise HTTPException(status_code=404, detail="unknown submission")
+    remaining = max(0, len(ladder) - level)
+    note = ""
+    if request.answer_requested or (
+        request.question and "answer" in request.question.lower()
+    ):
+        note = "I cannot provide the answer, but this next hint can help you investigate it."
+    elif level == len(ladder) and int(submission["hint_level"]) >= len(ladder):
+        note = "Trace your code by hand on a small example before changing it."
+    return {"hint": ladder[level - 1], "level": level, "remaining": remaining, "note": note}
