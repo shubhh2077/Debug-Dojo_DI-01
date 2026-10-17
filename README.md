@@ -1,4 +1,4 @@
-# Debug Dojo
+# Drishta / Debug Dojo - Python Practice Platform
 
 Debug Dojo is a FastAPI-backed Python debugging practice environment. It includes a dependency-free browser frontend, challenge navigation, sandboxed submissions, deterministic explanations, progressive hints, learner progress, and an optional server-side OpenRouter explanation enhancement.
 
@@ -61,3 +61,5 @@ Example learner profile request:
 ```bash
 curl http://localhost:8000/api/learner/demo_learner
 ```
+
+## `Made By Shubhh :D`
