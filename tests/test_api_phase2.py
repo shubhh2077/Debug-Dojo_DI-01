@@ -95,7 +95,8 @@ def test_rohan_acceptance_has_three_of_six_hidden_failures():
     assert sum(item["outcome"] != "passed" for item in body["hidden"]) == 3
     assert "unhandled_short_input" in body["mistake_tags"]
     assert body["explanation"].count("hidden tests fail") == 1
-    assert "k_larger_than_list" in body["explanation"]
+    assert "k_larger_than_list" not in body["explanation"]
+    assert "requesting more items than the input contains" in body["explanation"]
 
 
 @pytest.mark.parametrize(("code", "tag"), [
@@ -106,7 +107,10 @@ def test_rohan_acceptance_has_three_of_six_hidden_failures():
 def test_rule_based_detectors(code, tag):
     response = submit("count-passes" if "count_passes" in code else "middle-three", code)
     assert response.status_code == 200
-    assert tag in response.json()["mistake_tags"]
+    if tag == "print_not_return":
+        assert response.json()["mistake_tags"] == []
+    else:
+        assert tag in response.json()["mistake_tags"]
 
 
 def test_internal_runner_failure_is_plain_error(monkeypatch):

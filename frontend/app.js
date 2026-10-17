@@ -2,7 +2,7 @@
   "use strict";
   const $ = (id) => document.getElementById(id);
   const state = { challenges: [], current: null, submission: null };
-  const escapeHtml = (value) => String(value ?? "").replace(/[&<>]/g, (c) => ({ "&": "&", "<": "<", ">": ">" }[c]));
+  const escapeHtml = (value) => String(value ?? "").replace(/[\x26<>"\']/g, (c) => ({ "\x26": "\x26amp;", "<": "\x26lt;", ">": "\x26gt;", "\"": "\x26quot;", "\'": "\x26#39;" }[c]));
   const api = async (url, options = {}) => {
     const response = await fetch(url, { headers: { "Content-Type": "application/json" }, ...options });
     const data = await response.json().catch(() => ({}));
@@ -84,6 +84,11 @@
   }
   async function init() {
     try {
+      const ai = await api("/api/ai-status");
+      const badge = $("ai-status-badge");
+      badge.textContent = ai.enabled ? "AI explanations: on" : "AI explanations: off, using templates";
+      badge.classList.toggle("on", Boolean(ai.enabled));
+      badge.classList.toggle("off", !ai.enabled);
       state.challenges = await api("/api/challenges");
       if (!state.challenges.length) throw new Error("No challenges available");
       renderList();
