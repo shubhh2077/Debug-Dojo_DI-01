@@ -13,7 +13,7 @@ from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
 
-URL = "https://openrouter.ai/api/v1/chat/completions"
+URL = "https://aicredits.in/v1/chat/completions"
 DEFAULT_MODEL = "openrouter/free"
 MAX_PROMPT_BYTES = 8 * 1024
 MAX_RESPONSE_BYTES = 16 * 1024
