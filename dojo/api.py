@@ -7,6 +7,7 @@ import concurrent.futures
 import json
 import re
 import threading
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -64,7 +65,7 @@ def _execution_result(number: int, execution: Execution, test: dict[str, Any], h
     return {"test": number, "call": _call_text(function_name, test["args"]), "expected": repr(test["expected"]), "got": repr(execution.value), "outcome": execution.outcome}
 
 
-def _submit(request: SubmitRequest, challenge: dict[str, Any]) -> dict[str, Any]:
+def _submit(request: SubmitRequest, challenge: dict[str, Any], correlation: str = "unknown") -> dict[str, Any]:
     visible_exec, hidden_exec = run_challenge(request.code, challenge)
     visible = [_execution_result(i, e, test, False, challenge["function_name"]) for i, (e, test) in enumerate(zip(visible_exec, challenge["visible_tests"]), 1)]
     hidden = [_execution_result(i, e, test, True, challenge["function_name"]) for i, (e, test) in enumerate(zip(hidden_exec, challenge["hidden_tests"]), 1)]
@@ -75,9 +76,10 @@ def _submit(request: SubmitRequest, challenge: dict[str, Any]) -> dict[str, Any]
     submission_id = STORE.save(request.learner_id, request.challenge_id, request.code, outcomes, tags)
     template = explain(challenge, internal_visible, internal_hidden, tags)
     result = {"submission_id": submission_id, "learner_id": request.learner_id, "challenge_id": request.challenge_id, "visible": visible, "hidden": hidden, "mistake_tags": tags, "explanation": template, "deterministic_explanation": template, "enhanced_explanation": None, "explanation_source": "deterministic"}
-    if any(item.get("outcome") != "passed" for item in visible + hidden):
+    eligible = any(item.get("outcome") != "passed" for item in visible + hidden)
+    if eligible:
         facts = {"diagnosis": template.split(".", 1)[0], "passed": sum(item.get("outcome") == "passed" for item in visible + hidden), "failed": sum(item.get("outcome") != "passed" for item in visible + hidden), "kinds": sorted({str(item.get("kind", "edge case")) for item in internal_visible})}
-        enhanced, source = polish_explanation(template, facts)
+        enhanced, source = polish_explanation(template, facts, correlation)
         if source == "llm":
             result["explanation_source"] = "enhanced"
             result["enhanced_explanation"] = enhanced
@@ -111,6 +113,11 @@ async def frontend_asset(filename: str) -> FileResponse:
     return FileResponse(FRONTEND_ROOT / filename)
 
 
+@app.get("/api/ai-status")
+async def ai_status() -> dict[str, Any]:
+    return llm_status()
+
+
 @app.get("/api/challenges")
 async def challenges() -> list[dict[str, Any]]:
     return [_public_challenge(challenge) for challenge in CHALLENGES.values()]
@@ -118,6 +125,7 @@ async def challenges() -> list[dict[str, Any]]:
 
 @app.post("/api/submit")
 async def submit(request: SubmitRequest) -> dict[str, Any]:
+    correlation = uuid.uuid4().hex[:12]
     if request.challenge_id not in CHALLENGES:
         raise HTTPException(status_code=404, detail="unknown challenge")
     if not LEARNER_RE.fullmatch(request.learner_id):
@@ -128,7 +136,7 @@ async def submit(request: SubmitRequest) -> dict[str, Any]:
         raise HTTPException(status_code=429, detail="too many submissions")
     try:
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(POOL, _submit, request, CHALLENGES[request.challenge_id])
+        return await loop.run_in_executor(POOL, _submit, request, CHALLENGES[request.challenge_id], correlation)
     except HTTPException:
         raise
     except Exception:

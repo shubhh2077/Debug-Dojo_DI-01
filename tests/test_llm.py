@@ -54,7 +54,13 @@ def test_valid_provider_output_is_used(monkeypatch, tmp_path):
 def test_status_contains_only_safe_metadata(monkeypatch):
     monkeypatch.setenv("OPENROUTER_API_KEY", "secret-key-1234")
     monkeypatch.setenv("OPENROUTER_MODEL", "model-x")
-    assert llm.status() == {"enabled": True, "model": "model-x"}
+    body = llm.status()
+    assert body["enabled"] is True
+    assert body["model"] == "model-x"
+    assert body["state"] in {"not_checked", "enhanced"}
+    assert body["reason"] in {"not_checked", "success"}
+    assert "secret-key-1234" not in json.dumps(body)
+    assert "key" not in body
 
 
 def test_dotenv_preserves_existing_environment(monkeypatch, tmp_path):
