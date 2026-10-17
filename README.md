@@ -1,4 +1,4 @@
-# Drushti / Debug Dojo - Python Practice Platform
+# Drushta / Debug Dojo - Python Practice Platform
 
 **Find the bug. Keep the struggle.**
 
