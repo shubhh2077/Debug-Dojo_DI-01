@@ -1,4 +1,4 @@
-"""Start Debug Dojo on loopback by default."""
+"""Start Debug Dojo locally or on a hosted service."""
 from __future__ import annotations
 
 import os
@@ -24,9 +24,13 @@ def main() -> None:
     _load_dotenv()
     from dojo.llm import startup_line
     print(startup_line())
-    import uvicorn
-    uvicorn.run("dojo.api:app", host="127.0.0.1", port=8000)
 
+    import uvicorn
+
+    host = "0.0.0.0"
+    port = int(os.environ.get("PORT", "8000"))
+
+    uvicorn.run("dojo.api:app", host=host, port=port)
 
 if __name__ == "__main__":
     main()
