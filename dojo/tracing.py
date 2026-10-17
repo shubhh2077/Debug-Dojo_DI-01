@@ -105,7 +105,7 @@ def _send(conn: Any, message: dict[str, Any]) -> None:
 def _trace_child(code: str, function_name: str, args: list[Any],
                  sandbox: str, conn: Any) -> None:
     events: list[dict[str, Any]] = []
-    previous: dict[str, dict[str, Any]] | None = None
+    previous_by_frame: dict[int, dict[str, dict[str, Any]]] = {}
     steps = 0
     stdout = _CappedWriter()
     try:
@@ -113,7 +113,10 @@ def _trace_child(code: str, function_name: str, args: list[Any],
         os.chdir(sandbox)
         if hasattr(os, "setsid"):
             os.setsid()
-        _apply_limits()
+        # Tracing is intentionally sandboxed like judging, but remains usable
+        # on development hosts where resource limits are unavailable.
+        if __import__("dojo.runner", fromlist=["resource"]).resource is not None:
+            _apply_limits()
         safe_builtins = dict(vars(builtins))
         safe_builtins.update({
             "__import__": _safe_import,
@@ -131,24 +134,40 @@ def _trace_child(code: str, function_name: str, args: list[Any],
         source_name = "<learner>"
 
         def trace(frame: Any, event: str, arg: Any) -> Any:
-            nonlocal previous, steps
+            nonlocal steps
             if frame.f_code.co_filename != source_name:
+                return trace
+            # Module setup is not execution of the learner's selected function.
+            # Keeping it would produce a misleading line 0/definition step and
+            # would compare module globals with function locals.
+            if frame.f_code.co_name == "<module>":
                 return trace
             if event not in {"line", "call", "return"}:
                 return trace
             if steps >= MAX_STEPS:
                 raise _TraceLimit
+            frame_key = id(frame)
             current = _snapshot(frame.f_locals)
-            steps += 1
-            events.append({
-                "step": steps,
-                "line": frame.f_lineno,
+            previous = previous_by_frame.get(frame_key)
+            item: dict[str, Any] = {
+                "step": steps + 1,
+                "line": max(1, frame.f_lineno),
                 "event": event,
                 "function": frame.f_code.co_name,
                 "locals": current,
                 "changes": _changed(previous, current),
-            })
-            previous = current
+            }
+            if event == "return":
+                try:
+                    item["return_value"] = _safe_value(arg)
+                except BaseException:
+                    item["return_value"] = {"type": "unavailable", "value": "<value unavailable>"}
+            steps += 1
+            events.append(item)
+            if event == "return":
+                previous_by_frame.pop(frame_key, None)
+            else:
+                previous_by_frame[frame_key] = current
             return trace
 
         sys.settrace(trace)

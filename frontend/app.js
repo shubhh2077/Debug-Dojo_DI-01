@@ -37,10 +37,12 @@
     numbers.scrollTop = code.scrollTop;
   }
 
-  function resetTrace() {
+  function resetTrace(message = "Trace an example to inspect source lines and variables.") {
+    state.traceRequest += 1;
     state.trace = null; state.traceStep = 0;
-    ["visualizer-panel", "trace-view"].forEach((id) => { if ($(id)) $(id).hidden = true; });
-    if ($("trace-empty")) { $("trace-empty").hidden = false; $("trace-empty").textContent = "Trace an example to inspect source lines and variables."; }
+    ["trace-view"].forEach((id) => { if ($(id)) $(id).hidden = true; });
+    if ($("visualizer-panel")) $("visualizer-panel").hidden = false;
+    if ($("trace-empty")) { $("trace-empty").hidden = false; $("trace-empty").textContent = message; }
     if ($("trace-status")) $("trace-status").textContent = "";
     if ($("trace-step")) $("trace-step").textContent = "Step 0 / 0";
     if ($("trace-prev")) $("trace-prev").disabled = true;
@@ -61,26 +63,47 @@
     resetTrace(); updateLineNumbers(); renderList();
   }
 
+  function traceValue(value) {
+    if (!value || typeof value !== "object") return String(value ?? "<unavailable>");
+    if (Array.isArray(value.value)) return `[${value.value.map(traceValue).join(", ")}]${value.truncated ? " …" : ""}`;
+    if (value.value && typeof value.value === "object") return `{${Object.entries(value.value).map(([key, item]) => `${key}: ${traceValue(item)}`).join(", ")}}${value.truncated ? " …" : ""}`;
+    return String(value.value ?? "<unavailable>");
+  }
+
+  function renderTraceSource(activeLine) {
+    const source = $("code")?.value || "";
+    $("trace-source").innerHTML = source.split("\n").map((line, index) => `<span class="trace-source-line${index + 1 === activeLine ? " active" : ""}"><b>${index + 1}</b>${escapeHtml(line) || " "}</span>`).join("");
+  }
+
   function renderTraceStep() {
     const events = state.trace?.events || []; const event = events[state.traceStep];
     if (!event) return;
     $("trace-view").hidden = false; $("trace-empty").hidden = true; $("trace-step").textContent = `Step ${state.traceStep + 1} / ${events.length}`;
-    $("trace-source").textContent = $("code").value; $("trace-line").textContent = `Line ${event.line} · ${event.function}`; $("trace-event").textContent = `${event.event === "line" ? "Executed" : event.event} · public example only`;
-    $("trace-vars").innerHTML = Object.entries(event.locals || {}).map(([key, value]) => `<div class="trace-var"><strong>${escapeHtml(key)}</strong><code>${escapeHtml(value.value)}</code><small>${escapeHtml(value.type)}</small></div>`).join("") || `<p class="muted">No local variables.</p>`;
-    $("trace-changes").innerHTML = (event.changes || []).map((change) => `<span class="tag">${escapeHtml(change)} changed</span>`).join("") || `<p class="muted">No variable changed.</p>`;
-    $("trace-output").textContent = state.trace.return_value == null ? "No output." : String(state.trace.return_value); $("trace-error").textContent = state.trace.error || "None";
+    renderTraceSource(event.line);
+    $("trace-line").textContent = `Line ${event.line} · ${event.function}`;
+    const labels = { line: "Executed", call: "Function call", return: "Function return" };
+    $("trace-event").textContent = `${labels[event.event] || "Trace event"} · public example only`;
+    $("trace-vars").innerHTML = Object.entries(event.locals || {}).map(([key, value]) => `<div class="trace-var"><strong>${escapeHtml(key)}</strong><code>${escapeHtml(traceValue(value))}</code><small>${escapeHtml(value.type || "value")}</small></div>`).join("") || `<p class="muted">No local variables were observable at this step.</p>`;
+    $("trace-changes").innerHTML = (event.changes || []).map((change) => `<span class="tag">${escapeHtml(change)} changed</span>`).join("") || `<p class="muted">No variable changes were observed at this step.</p>`;
+    $("trace-output").textContent = event.return_value ? `Returned ${traceValue(event.return_value)}` : (state.trace.return_value ? `Final result: ${traceValue(state.trace.return_value)}` : "No return value available.");
+    $("trace-error").textContent = state.trace.error || "None";
     $("trace-prev").disabled = state.traceStep === 0; $("trace-next").disabled = state.traceStep >= events.length - 1;
   }
 
   async function traceCode() {
     if (!state.current) return;
-    const token = ++state.traceRequest; const button = $("trace-button"); button.disabled = true; $("visualizer-panel").hidden = false; $("trace-status").textContent = "Tracing safely...";
+    const token = ++state.traceRequest; const button = $("trace-button"); button.disabled = true; $("visualizer-panel").hidden = false; $("trace-view").hidden = true; $("trace-empty").hidden = false; $("trace-empty").textContent = "Tracing the selected public example..."; $("trace-status").textContent = "Tracing safely...";
     try {
       const data = await api("/api/trace", { method: "POST", body: JSON.stringify({ learner_id: learnerId(), challenge_id: state.current.id, code: $("code").value, visible_test: Number($("trace-test").value) }) });
-      if (token !== state.traceRequest) return; state.trace = data; state.traceStep = 0; $("trace-status").textContent = data.status === "completed" ? "Trace ready" : "Trace unavailable";
-      if (data.events?.length) renderTraceStep(); else $("trace-empty").textContent = "Could not trace this code. Check it runs on the example first.";
-    } catch (error) { $("trace-status").textContent = "Trace failed"; $("trace-empty").textContent = "Could not trace this code. Check it runs on the example first."; $("trace-empty").hidden = false; setStatus(error.message); }
-    finally { button.disabled = false; }
+      if (token !== state.traceRequest) return;
+      state.trace = data; state.traceStep = 0;
+      const complete = data.status === "completed";
+      $("trace-status").textContent = complete ? "Trace ready" : `Trace ${data.status.replace("_", " ")}`;
+      if (data.events?.length) renderTraceStep(); else { $("trace-empty").textContent = data.error ? `No steps available: ${data.error}.` : "No observable execution steps were produced."; }
+    } catch (error) {
+      if (token !== state.traceRequest) return;
+      $("trace-status").textContent = "Trace failed"; $("trace-empty").textContent = "The trace could not be produced. The editor and submission results were not changed."; $("trace-empty").hidden = false; setStatus(error.message);
+    } finally { if (token === state.traceRequest) button.disabled = false; }
   }
 
   function renderHints() {
