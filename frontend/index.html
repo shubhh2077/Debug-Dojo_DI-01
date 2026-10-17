@@ -43,5 +43,122 @@
     </aside>
   </main>
   <script src="/frontend/app.js" defer></script>
+<!-- DOJO-HINT-LADDER:start -->
+<style>
+#dojo-ladder{margin-top:20px}
+#dojo-ladder h3{margin:0 0 10px}
+#dojo-ladder .lad-slot{border:1px solid #273240;border-radius:10px;padding:12px 14px;margin-bottom:10px;font-size:15px;line-height:1.55;background:#111820}
+#dojo-ladder .lad-slot small{display:block;color:#9fb0c0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+#dojo-ladder .lad-locked{border-style:dashed;opacity:.55}
+#dojo-ladder .lad-btn{background:#f2b84b;color:#1a1305;border:0;border-radius:8px;min-height:44px;padding:10px 18px;font-weight:600;font-size:15px;cursor:pointer;width:100%}
+#dojo-ladder .lad-btn:disabled{opacity:.5;cursor:not-allowed}
+#dojo-ladder .lad-btn:focus-visible{outline:2px solid #4fd1c5;outline-offset:2px}
+#dojo-ladder .lad-note{color:#9fb0c0;font-size:13px;margin-top:8px}
+</style>
+<script>
+(function () {
+  var realFetch = window.fetch.bind(window);
+  function fresh() { return {sid: null, passed: false, hints: [], done: false, busy: false, note: '', err: ''}; }
+  var st = fresh();
+  var root = null;
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text != null) e.textContent = text;
+    return e;
+  }
+
+  function mount() {
+    if (root && document.body.contains(root)) return root;
+    root = document.getElementById('dojo-ladder');
+    if (!root) {
+      root = el('div');
+      root.id = 'dojo-ladder';
+      var anchor = document.getElementById('hints') || document.getElementById('explanation');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(root, anchor.nextSibling);
+      else (document.getElementById('results-panel') || document.body).appendChild(root);
+    }
+    var oldBtn = document.getElementById('hint-button');
+    if (oldBtn) oldBtn.style.display = 'none';
+    var oldBox = document.getElementById('hints');
+    if (oldBox) oldBox.style.display = 'none';
+    return root;
+  }
+
+  function render() {
+    var r = mount();
+    r.textContent = '';
+    r.appendChild(el('h3', '', 'Hint ladder'));
+    if (!st.sid) { r.appendChild(el('p', 'lad-note', 'Run your code to see hints.')); return; }
+    if (st.passed) { r.appendChild(el('p', 'lad-note', 'No hints needed, nicely done.')); return; }
+    var total = Math.max(4, st.hints.length);
+    for (var i = 0; i < total; i++) {
+      var shown = i < st.hints.length;
+      var slot = el('div', 'lad-slot' + (shown ? '' : ' lad-locked'));
+      slot.appendChild(el('small', '', shown ? 'Hint ' + (i + 1) : 'Hint ' + (i + 1) + ', locked'));
+      if (shown) slot.appendChild(document.createTextNode(st.hints[i]));
+      r.appendChild(slot);
+    }
+    var label = st.done ? 'All hints shown, try tracing your code by hand' : (st.busy ? 'Loading hint...' : 'Show next hint');
+    var btn = el('button', 'lad-btn', label);
+    btn.type = 'button';
+    btn.disabled = st.busy || st.done;
+    btn.addEventListener('click', nextHint);
+    r.appendChild(btn);
+    if (st.err) r.appendChild(el('p', 'lad-note', st.err));
+    if (st.note) r.appendChild(el('p', 'lad-note', st.note));
+    r.appendChild(el('p', 'lad-note', 'Hints never contain code. You write the fix.'));
+  }
+
+  function nextHint() {
+    if (!st.sid || st.busy || st.done) return;
+    var sid = st.sid;
+    st.busy = true; st.err = ''; render();
+    realFetch('/api/hint', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({submission_id: sid})})
+      .then(function (r) { return r.json().then(function (d) { return {ok: r.ok, d: d}; }); })
+      .then(function (x) {
+        if (st.sid !== sid) return;
+        st.busy = false;
+        if (!x.ok) { st.err = 'Could not load a hint right now. Please try again.'; render(); return; }
+        var d = x.d || {};
+        var text = d.hint || d.text || d.hint_text || '';
+        if (!text) { st.note = d.note || d.message || 'No hint is available for this submission.'; st.done = true; render(); return; }
+        if (st.hints.length && st.hints[st.hints.length - 1] === text) st.done = true;
+        else st.hints.push(text);
+        if (d.note) st.note = d.note;
+        if (d.remaining === 0 || st.hints.length >= 4) st.done = true;
+        render();
+      })
+      .catch(function () { if (st.sid === sid) { st.busy = false; st.err = 'Could not load a hint right now. Please try again.'; render(); } });
+  }
+
+  window.fetch = function (input, init) {
+    var url = typeof input === 'string' ? input : ((input && input.url) || '');
+    var p = realFetch(input, init);
+    if (url.indexOf('/api/submit') !== -1) {
+      p.then(function (r) { return r.clone().json(); }).then(function (d) {
+        if (!d || !d.submission_id) return;
+        var all = [].concat(d.visible || [], d.hidden || []);
+        st = fresh();
+        st.sid = d.submission_id;
+        st.passed = all.length > 0 && all.every(function (t) { return t.outcome === 'passed'; });
+        render();
+      }).catch(function () {});
+    }
+    return p;
+  };
+
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (t && t.closest && t.closest('#challenge-list')) { st = fresh(); render(); }
+  });
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', render);
+  else render();
+})();
+</script>
+<!-- DOJO-HINT-LADDER:end -->
+
 </body>
 </html>

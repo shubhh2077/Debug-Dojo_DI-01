@@ -192,12 +192,10 @@ async def hint(request: HintRequest) -> dict[str, Any]:
     if submission is None:
         raise HTTPException(status_code=404, detail="unknown submission")
     tags = submission["mistake_tags"]
-    if not tags:
-        raise HTTPException(status_code=400, detail="submission has no detected mistake")
-    category = tags[0]
+    category = tags[0] if tags else "general"
     ladder = get_ladder(submission["challenge_id"], category)
     if not ladder:
-        raise HTTPException(status_code=400, detail="no hint ladder for detected mistake")
+        raise HTTPException(status_code=400, detail="no hint ladder available")
     level = min(int(submission["hint_level"]) + 1, len(ladder))
     updated = STORE.advance_hint(request.submission_id)
     if updated is None:

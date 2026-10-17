@@ -162,9 +162,51 @@ def validate_hints() -> None:
                 raise ValueError(f"code-like hint in {challenge_id}/{category}")
 
 
+GENERIC_LADDERS: dict[str, list[str]] = {
+    "unhandled_short_input": [
+        "Your visible examples all have plenty of items. What should your function return when the input is empty or very short?",
+        "Pick the smallest input this problem allows and work it out by hand, line by line. What does each line of your function do with it?",
+        "Some operations fail or give the wrong answer when there is nothing, or too little, to work with. Find the first line that depends on the input having enough items.",
+        "Handle the too-short case on its own, before the main logic runs, and decide what the problem says it should give back there.",
+    ],
+    "off_by_one": [
+        "Your code gets close but is off by a little. Think about where your loop or slice starts and where it stops.",
+        "Take a tiny example with three items and write down which positions your code visits. Compare that to which positions you actually need.",
+        "Check whether each end of your range is included or left out. Counting from zero and the end of a range behave differently.",
+        "Move one boundary by exactly one step and re-run. Then check the smallest and largest inputs to confirm it holds at both ends.",
+    ],
+    "print_not_return": [
+        "Your function shows a result on screen, but the tests need something different. What does the function hand back to the caller?",
+        "Showing a value and handing it back are not the same thing. The tests read what your function gives back, not what appears on screen.",
+        "Look at the end of your function. Is there a statement that sends the final answer back to whoever called it?",
+        "Make sure every path through your function ends by handing back the final value instead of displaying it.",
+    ],
+    "boundary_comparison": [
+        "Your function works for most values but fails right at a limit. Which value in the problem sits exactly on the edge?",
+        "Try the edge value from the problem statement by hand. Does it end up on the side the problem says it should?",
+        "Compare how you check the limit with what the problem says. Does the rule include the limit value itself, or only values past it?",
+        "Adjust the comparison so the limit value lands on the correct side, then re-test just below, on, and just above the limit.",
+    ],
+    "mutates_input": [
+        "After your function runs, is the list you passed in still the same as before? The problem expects the original to stay untouched.",
+        "Some list operations change the list in place, while others build a new one. Which kind is your code using?",
+        "Find the line that changes the original list, and work out how to do the same job without altering what was passed in.",
+        "Work on a separate copy of the data and give that copy back. Then check the original is unchanged after the call.",
+    ],
+    "general": [
+        "Your code runs, but it does not match what the tests expect. Re-read the problem statement and compare it with what your function actually does.",
+        "Pick one visible example and work through your function by hand, line by line. Where does your result first differ from the expected one?",
+        "Write down the value of each variable after every step for that example. Look for the first step where a value is not what you expect.",
+        "Once you spot the first wrong step, think about the smallest change to that line, then re-run the tests, including very small inputs.",
+    ],
+}
+
+
 def get_ladder(challenge_id: str, category: str) -> list[str] | None:
     ladder = HINTS.get(challenge_id, {}).get(category)
-    return list(ladder) if ladder else None
+    if not ladder:
+        ladder = GENERIC_LADDERS.get(category) or GENERIC_LADDERS["general"]
+    return list(ladder)
 
 
 validate_hints()
