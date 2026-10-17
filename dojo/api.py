@@ -10,7 +10,7 @@ import threading
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
@@ -47,6 +47,7 @@ class TraceRequest(BaseModel):
     code: str
     visible_test: int
 
+
 class HintRequest(BaseModel):
     submission_id: str
     answer_requested: bool = False
@@ -73,17 +74,13 @@ def _submit(request: SubmitRequest, challenge: dict[str, Any]) -> dict[str, Any]
     outcomes = {"visible": visible, "hidden": hidden}
     submission_id = STORE.save(request.learner_id, request.challenge_id, request.code, outcomes, tags)
     template = explain(challenge, internal_visible, internal_hidden, tags)
-    result = {"submission_id": submission_id, "learner_id": request.learner_id, "challenge_id": request.challenge_id, "visible": visible, "hidden": hidden, "mistake_tags": tags, "explanation": template}
+    result = {"submission_id": submission_id, "learner_id": request.learner_id, "challenge_id": request.challenge_id, "visible": visible, "hidden": hidden, "mistake_tags": tags, "explanation": template, "deterministic_explanation": template, "enhanced_explanation": None, "explanation_source": "deterministic"}
     if any(item.get("outcome") != "passed" for item in visible + hidden):
-        facts = {
-            "diagnosis": template.split(".", 1)[0],
-            "passed": sum(item.get("outcome") == "passed" for item in visible + hidden),
-            "failed": sum(item.get("outcome") != "passed" for item in visible + hidden),
-            "kinds": sorted({str(item.get("kind", "edge case")) for item in internal_visible + internal_hidden}),
-        }
-        explanation, source = polish_explanation(template, facts)
-        result["explanation"] = explanation
-        result["explanation_source"] = source
+        facts = {"diagnosis": template.split(".", 1)[0], "passed": sum(item.get("outcome") == "passed" for item in visible + hidden), "failed": sum(item.get("outcome") != "passed" for item in visible + hidden), "kinds": sorted({str(item.get("kind", "edge case")) for item in internal_visible})}
+        enhanced, source = polish_explanation(template, facts)
+        if source == "llm":
+            result["explanation_source"] = "enhanced"
+            result["enhanced_explanation"] = enhanced
     return result
 
 
@@ -113,11 +110,6 @@ async def frontend_asset(filename: str) -> FileResponse:
         raise HTTPException(status_code=404, detail="asset not found")
     return FileResponse(FRONTEND_ROOT / filename)
 
-
-
-@app.get("/api/ai-status")
-async def ai_status() -> dict[str, Any]:
-    return llm_status()
 
 @app.get("/api/challenges")
 async def challenges() -> list[dict[str, Any]]:
