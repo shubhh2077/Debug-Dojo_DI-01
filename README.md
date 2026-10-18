@@ -4,7 +4,7 @@
 
 A Python practice environment that runs learner code in a restricted sandbox, tells the learner *where to look* instead of handing over the answer, and remembers which mistakes they keep making.
 
-**Live Deployed URL:** https://debug-dojo-arasaka.onrender.com/
+**Live Deployed URL:** Well It's Gone It's Gone It's Gone :D
 
 > The demo runs from the team's laptop through a temporary Cloudflare tunnel. If the link does not load, the tunnel was restarted; ask the team for the new address.
 
